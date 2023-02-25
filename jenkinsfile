@@ -1,0 +1,30 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('code') {
+            steps {
+                 git 'https://github.com/abhi016/node-todo-cicd.git'
+            }
+        }
+         stage('build') {
+            steps {
+                   sh 'docker build -t aryann3003/node-todo:latest .'
+            }
+        }
+           stage('Push Image') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', passwordVariable: 'dockerhubpass',usernameVariable: 'dockerhubuser')]) {
+                    sh "docker login -u ${env.dockerhubuser} -p ${env.dockerhubpass}"
+                    sh ' docker push  aryann3003/node-todo:latest '
+                
+                }
+            }
+        }
+         stage('deploy') {
+            steps {
+                 sh 'docker-compose down && docker-compose up -d' 
+            }
+        }
+    }
+}
